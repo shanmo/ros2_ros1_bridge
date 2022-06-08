@@ -13,8 +13,8 @@ from pathlib import Path
 import shutil
 
 def read_topic(ros1_bag_name, topic_name):
-    if "compressed" in topic_name.split("/"):
-        it = ImageTools()
+    # if "compressed" in topic_name.split("/"):
+    #     it = ImageTools()
     results = []
     # create reader instance
     with Reader(ros1_bag_name) as reader:
@@ -22,9 +22,9 @@ def read_topic(ros1_bag_name, topic_name):
         for connection, timestamp, rawdata in reader.messages():
             if connection.topic == topic_name:
                 msg = deserialize_cdr(ros1_to_cdr(rawdata, connection.msgtype), connection.msgtype)
-                if "compressed" in topic_name.split("/"):
-                    msg_raw = it.convert_ros_compressed_msg_to_ros_msg(msg)
-                    msg = Image(msg.header, msg_raw.height, msg_raw.width, msg_raw.encoding, msg_raw.is_bigendian, msg_raw.step, msg.data)
+                # if "compressed" in topic_name.split("/"):
+                #     msg_raw = it.convert_ros_compressed_msg_to_ros_msg(msg)
+                #     msg = Image(msg.header, msg_raw.height, msg_raw.width, msg_raw.encoding, msg_raw.is_bigendian, msg_raw.step, msg.data)
                     # msg = CompressedImage(msg.header, msg.format, msg.data)
                 results.append((timestamp, msg))
                 # print(f"read {msg.header.frame_id}")
@@ -38,19 +38,22 @@ if __name__ == "__main__":
     if dirpath.exists() and dirpath.is_dir():
         shutil.rmtree(dirpath)
 
-    topic_name = "/fr_camera/color/image_raw_throttled/compressed"
+    topic_name = "/image_raw"
     img_msgs = read_topic(ros1_bag_name, topic_name)
 
     topic_name = "/rslidar_points"
     lidar_msgs = read_topic(ros1_bag_name, topic_name)
 
     topic_name = "/tf_static"
+    tfs_msgs = read_topic(ros1_bag_name, topic_name)
+
+    topic_name = "/tf"
     tf_msgs = read_topic(ros1_bag_name, topic_name)
 
     # create writer instance and open for writing
     with Writer(ros2_bag_name) as writer:
         # add new connection
-        topic_name = "/image_raw"
+        topic_name = "/image_rgb"
         img_msgtype = Image.__msgtype__
         # img_msgtype = CompressedImage.__msgtype__
         img_conn = writer.add_connection(topic_name, img_msgtype, 'cdr', '')
@@ -70,6 +73,17 @@ if __name__ == "__main__":
                 ld_conn,
                 timestamp,
                 serialize_cdr(msg, ld_msgtype),
+            )
+
+        # add new connection
+        topic_name = "/tf_static"
+        tf_msgtype = tf_m.__msgtype__
+        tf_conn = writer.add_connection(topic_name, tf_msgtype, 'cdr', '')
+        for timestamp, msg in tfs_msgs:
+            writer.write(
+                tf_conn,
+                timestamp,
+                serialize_cdr(msg, tf_msgtype),
             )
 
         # add new connection

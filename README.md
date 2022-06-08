@@ -27,3 +27,7 @@ Topic information: Topic: /image_compressed | Type: sensor_msgs/msg/CompressedIm
                    Topic: /lidar | Type: sensor_msgs/msg/PointCloud2 | Count: 369 | Serialization Format: cdr
                    Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 1 | Serialization Format: cdr
 ```
+
+## todo 
+
+- [ ] convert compressed image to raw image 
