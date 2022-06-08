@@ -23,9 +23,9 @@ def read_topic(ros1_bag_name, topic_name):
             if connection.topic == topic_name:
                 msg = deserialize_cdr(ros1_to_cdr(rawdata, connection.msgtype), connection.msgtype)
                 if "compressed" in topic_name.split("/"):
-                    # msg = it.convert_ros_compressed_msg_to_ros_msg(msg)
-                    # msg = Image(msg.header, msg_raw.height, msg_raw.width, msg_raw.encoding, msg_raw.is_bigendian, msg_raw.step, msg_raw.data)
-                    msg = CompressedImage(msg.header, msg.format, msg.data)
+                    msg_raw = it.convert_ros_compressed_msg_to_ros_msg(msg)
+                    msg = Image(msg.header, msg_raw.height, msg_raw.width, msg_raw.encoding, msg_raw.is_bigendian, msg_raw.step, msg.data)
+                    # msg = CompressedImage(msg.header, msg.format, msg.data)
                 results.append((timestamp, msg))
                 # print(f"read {msg.header.frame_id}")
     return results
@@ -50,9 +50,9 @@ if __name__ == "__main__":
     # create writer instance and open for writing
     with Writer(ros2_bag_name) as writer:
         # add new connection
-        topic_name = "/image_compressed"
-        # img_msgtype = Image.__msgtype__
-        img_msgtype = CompressedImage.__msgtype__
+        topic_name = "/image_raw"
+        img_msgtype = Image.__msgtype__
+        # img_msgtype = CompressedImage.__msgtype__
         img_conn = writer.add_connection(topic_name, img_msgtype, 'cdr', '')
         for timestamp, msg in img_msgs:
             writer.write(

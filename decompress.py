@@ -8,7 +8,7 @@ class ImageTools(object):
         self._cv_bridge = CvBridge()
 
     def convert_ros_compressed_to_cv2(self, compressed_msg):
-        np_arr = np.fromstring(compressed_msg.data, np.uint8)
+        np_arr = compressed_msg.data.astype(np.uint8)
         return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
     def convert_ros_compressed_msg_to_ros_msg(self, compressed_msg,
