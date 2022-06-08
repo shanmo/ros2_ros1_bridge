@@ -4,13 +4,17 @@ from rosbags.serde import deserialize_cdr, ros1_to_cdr
 from rosbags.rosbag2 import Writer
 from rosbags.serde import serialize_cdr
 from rosbags.typesys.types import sensor_msgs__msg__CompressedImage as CompressedImage
+from rosbags.typesys.types import sensor_msgs__msg__Image as Image
 from rosbags.typesys.types import sensor_msgs__msg__PointCloud2 as pt2
 from rosbags.typesys.types import tf2_msgs__msg__TFMessage as tf_m
 
+from decompress import ImageTools
 from pathlib import Path
 import shutil
 
 def read_topic(ros1_bag_name, topic_name):
+    if "compressed" in topic_name.split("/"):
+        it = ImageTools()
     results = []
     # create reader instance
     with Reader(ros1_bag_name) as reader:
@@ -18,6 +22,10 @@ def read_topic(ros1_bag_name, topic_name):
         for connection, timestamp, rawdata in reader.messages():
             if connection.topic == topic_name:
                 msg = deserialize_cdr(ros1_to_cdr(rawdata, connection.msgtype), connection.msgtype)
+                if "compressed" in topic_name.split("/"):
+                    # msg = it.convert_ros_compressed_msg_to_ros_msg(msg)
+                    # msg = Image(msg.header, msg_raw.height, msg_raw.width, msg_raw.encoding, msg_raw.is_bigendian, msg_raw.step, msg_raw.data)
+                    msg = CompressedImage(msg.header, msg.format, msg.data)
                 results.append((timestamp, msg))
                 # print(f"read {msg.header.frame_id}")
     return results
@@ -43,6 +51,7 @@ if __name__ == "__main__":
     with Writer(ros2_bag_name) as writer:
         # add new connection
         topic_name = "/image_compressed"
+        # img_msgtype = Image.__msgtype__
         img_msgtype = CompressedImage.__msgtype__
         img_conn = writer.add_connection(topic_name, img_msgtype, 'cdr', '')
         for timestamp, msg in img_msgs:
