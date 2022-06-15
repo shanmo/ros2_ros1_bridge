@@ -13,8 +13,6 @@ from pathlib import Path
 import shutil
 
 def read_topic(ros1_bag_name, topic_name):
-    if "compressed" in topic_name.split("/"):
-        it = ImageTools()
     results = []
     # create reader instance
     with Reader(ros1_bag_name) as reader:
@@ -22,10 +20,6 @@ def read_topic(ros1_bag_name, topic_name):
         for connection, timestamp, rawdata in reader.messages():
             if connection.topic == topic_name:
                 msg = deserialize_cdr(ros1_to_cdr(rawdata, connection.msgtype), connection.msgtype)
-                if connection.msgtype == CompressedImage.__msgtype__:
-                    msg_raw = it.convert_ros_compressed_msg_to_ros_msg(msg)
-                    msg = Image(msg.header, msg_raw.height, msg_raw.width, msg_raw.encoding, msg_raw.is_bigendian, msg_raw.step, msg.data)
-                    # msg = CompressedImage(msg.header, msg.format, msg.data)
                 results.append((timestamp, msg))
                 # print(f"read {msg.header.frame_id}")
     return results
@@ -33,6 +27,9 @@ def read_topic(ros1_bag_name, topic_name):
 if __name__ == "__main__":
     ros1_bag_name = './data/ros1_demo.bag'
     ros2_bag_name = './data/ros2_demo'
+
+    offered_qos_profiles = ''
+    # offered_qos_profiles = "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 2147483647\n    nsec: 4294967295\n  lifespan:\n    sec: 2147483647\n    nsec: 4294967295\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 2147483647\n    nsec: 4294967295\n  avoid_ros_namespace_conventions: false"
 
     dirpath = Path(ros2_bag_name)
     if dirpath.exists() and dirpath.is_dir():
@@ -53,8 +50,8 @@ if __name__ == "__main__":
     # create writer instance and open for writing
     with Writer(ros2_bag_name) as writer:
         # add new connection
-        topic_name = "/image_raw"
-        img_msgtype = Image.__msgtype__
+        topic_name = "/image_compressed"
+        img_msgtype = CompressedImage.__msgtype__
         # img_msgtype = CompressedImage.__msgtype__
         img_conn = writer.add_connection(topic_name, img_msgtype, 'cdr', '')
         for timestamp, msg in img_msgs:
@@ -65,7 +62,7 @@ if __name__ == "__main__":
             )
 
         # add new connection
-        topic_name = "/lidar"
+        topic_name = "/rslidar_points"
         ld_msgtype = pt2.__msgtype__
         ld_conn = writer.add_connection(topic_name, ld_msgtype, 'cdr', '')
         for timestamp, msg in lidar_msgs:
@@ -78,7 +75,7 @@ if __name__ == "__main__":
         # add new connection
         topic_name = "/tf_static"
         tf_msgtype = tf_m.__msgtype__
-        tf_conn = writer.add_connection(topic_name, tf_msgtype, 'cdr', '')
+        tf_conn = writer.add_connection(topic_name, tf_msgtype, 'cdr', offered_qos_profiles)
         for timestamp, msg in tf_static_msgs:
             writer.write(
                 tf_conn,
@@ -89,7 +86,7 @@ if __name__ == "__main__":
         # add new connection
         topic_name = "/tf"
         tf_msgtype = tf_m.__msgtype__
-        tf_conn = writer.add_connection(topic_name, tf_msgtype, 'cdr', '')
+        tf_conn = writer.add_connection(topic_name, tf_msgtype, 'cdr', offered_qos_profiles)
         for timestamp, msg in tf_msgs:
             writer.write(
                 tf_conn,

@@ -1,0 +1,10 @@
+digraph G {
+"odom" -> "base_link"[label=" Broadcaster: default_authority\nAverage rate: 50.13\nBuffer length: 5.027\nMost recent transform: 1645594969.021737\nOldest transform: 1645594963.994792\n"];
+"map" -> "odom"[label=" Broadcaster: default_authority\nAverage rate: 10.121\nBuffer length: 4.94\nMost recent transform: 1645594968.904331\nOldest transform: 1645594963.96387\n"];
+"lidar_mount" -> "rslidar"[label=" Broadcaster: default_authority\nAverage rate: 12.667\nBuffer length: 4.973\nMost recent transform: 1645594969.064732\nOldest transform: 1645594964.091298\n"];
+"realsense_fl_mount" -> "fl_camera_link"[label=" Broadcaster: default_authority\nAverage rate: 39.794\nBuffer length: 5.001\nMost recent transform: 1645594969.051508\nOldest transform: 1645594964.050762\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1655267717.0277276"[ shape=plaintext ] ;
+}->"realsense_fl_mount";
+}
