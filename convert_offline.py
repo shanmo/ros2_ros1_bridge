@@ -29,6 +29,7 @@ if __name__ == "__main__":
     ros2_bag_name = './data/ros2_demo'
 
     offered_qos_profiles = ''
+    # ref https://github.com/ros2/rosbag2/issues/609
     # offered_qos_profiles = "- history: 3\n  depth: 0\n  reliability: 1\n  durability: 2\n  deadline:\n    sec: 2147483647\n    nsec: 4294967295\n  lifespan:\n    sec: 2147483647\n    nsec: 4294967295\n  liveliness: 1\n  liveliness_lease_duration:\n    sec: 2147483647\n    nsec: 4294967295\n  avoid_ros_namespace_conventions: false"
 
     dirpath = Path(ros2_bag_name)
